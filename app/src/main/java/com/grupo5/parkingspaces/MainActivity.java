@@ -1,147 +1,123 @@
 package com.grupo5.parkingspaces;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
-
-import com.google.android.material.snackbar.Snackbar;
-
-import androidx.appcompat.app.AppCompatActivity;
-
+import android.view.LayoutInflater;
 import android.view.View;
-
-import androidx.cardview.widget.CardView;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
-
-import com.grupo5.parkingspaces.databinding.ActivityMainBinding;
-
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.GridLayout;
-import android.widget.ImageView;
+import android.widget.EditText;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
-    private AppBarConfiguration appBarConfiguration;
-    private ActivityMainBinding binding;
+    private TextView park1Status;
+    private TextView park2Status;
+    private Button park1Button;
+    private Button park2Button;
+
+    private boolean isPark1Occupied;
+    private boolean isPark2Occupied;
+
+    private String park1User;
+    private String park2User;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+        park1Status = findViewById(R.id.park1Status);
+        park2Status = findViewById(R.id.park2Status);
+        park1Button = findViewById(R.id.park1Button);
+        park2Button = findViewById(R.id.park2Button);
 
-        setSupportActionBar(binding.toolbar);
+        // Set initial status
+        updateParkStatus();
 
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-        appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
-
-
-        GridLayout gridLayout = new GridLayout(this);
-        GridLayout.LayoutParams layoutParams = new GridLayout.LayoutParams();
-        layoutParams.height = GridLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.width = GridLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.setMargins(10, 10, 10, 10);
-        gridLayout.setLayoutParams(layoutParams);
-
-        gridLayout.setColumnCount(3);
-        gridLayout.setRowCount(5);
-
-        ViewGroup root =  (ViewGroup) findViewById(R.id.mainpage);
-
-        int[] arr = {3, 4, 3, 2};
-        int r = 0, c = 0;
-        for (int i=0; i<4; i++) {
-            for(int j=0; j<arr[i]; j++) {
-                CardView cardView  =  createChild();
-                if( c == 3 ) {
-                    c = 0;
-                    r++;
-                }
-
-                Button button  = new Button(this);
-                button.setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View v) {
-                        Snackbar.make(v , "Replace with your own action", Snackbar.LENGTH_LONG)
-                                .setAction("Action", null).show();                    }
-                });
-//                ImageView imageView = new ImageView(this);
-//                imageView.setImageResource(R.mipmap.ic_launcher);
-//                imageView.setLayoutParams(new ViewGroup.LayoutParams(150, 150));
-
-                GridLayout.Spec rowSpan = GridLayout.spec(GridLayout.UNDEFINED, 1, 1f);
-                GridLayout.Spec colSpan = GridLayout.spec(GridLayout.UNDEFINED, 1, 1f);
-
-//                if(r == 0 && c == 0) {
-//                    colSpan = GridLayout.spec(GridLayout.UNDEFINED, 1);
-//                    rowSpan = GridLayout.spec(GridLayout.UNDEFINED, 2);
-//                }
-
-                GridLayout.LayoutParams gridParam = new GridLayout.LayoutParams(
-                        rowSpan, colSpan
-                );
-                cardView.addView(button);
-                gridLayout.addView(cardView, gridParam);
-                r++; c++;
-            }
-
-        }
-
-        root.addView(gridLayout);
-
-        binding.fab.setOnClickListener(new View.OnClickListener() {
+        park1Button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+            public void onClick(View v) {
+                if (isPark1Occupied) {
+                    // Park 1 is occupied, so release it
+                    isPark1Occupied = false;
+                    park1User = null;
+                } else {
+                    // Park 1 is free, so reserve it
+                    showReservationDialog(1);
+                }
+                updateParkStatus();
+            }
+        });
+
+        park2Button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isPark2Occupied) {
+                    // Park 2 is occupied, so release it
+                    isPark2Occupied = false;
+                    park2User = null;
+                } else {
+                    // Park 2 is free, so reserve it
+                    showReservationDialog(2);
+                }
+                updateParkStatus();
             }
         });
     }
 
-    private CardView createChild() {
-            CardView cardView = new CardView(this);
-            cardView.setCardElevation(2);
-            cardView.setUseCompatPadding(true);
-            ViewGroup.LayoutParams cvLayoutParams = new ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-            );
-            cardView.setLayoutParams(cvLayoutParams);
-            return cardView;
+    private void showReservationDialog(final int parkNumber) {
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = this.getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_reservation, null);
+        dialogBuilder.setView(dialogView);
+
+        final EditText nameEditText = dialogView.findViewById(R.id.nameEditText);
+
+        dialogBuilder.setTitle("Park " + parkNumber + " Reservation");
+        dialogBuilder.setPositiveButton("Reserve", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                String userName = nameEditText.getText().toString();
+                if (!userName.isEmpty()) {
+                    if (parkNumber == 1) {
+                        isPark1Occupied = true;
+                        park1User = userName;
+                    } else if (parkNumber == 2) {
+                        isPark2Occupied = true;
+                        park2User = userName;
+                    }
+                    updateParkStatus();
+                }
+            }
+        });
+        dialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                dialog.dismiss();
+            }
+        });
+
+        AlertDialog alertDialog = dialogBuilder.create();
+        alertDialog.show();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+    private void updateParkStatus() {
+        if (isPark1Occupied) {
+            park1Status.setText("Occupied by " + park1User);
+            park1Button.setText("Release Park 1");
+        } else {
+            park1Status.setText("Free");
+            park1Button.setText("Reserve Park 1");
         }
 
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public boolean onSupportNavigateUp() {
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-        return NavigationUI.navigateUp(navController, appBarConfiguration)
-                || super.onSupportNavigateUp();
+        if (isPark2Occupied) {
+            park2Status.setText("Occupied by " + park2User);
+            park2Button.setText("Release Park 2");
+        } else {
+            park2Status.setText("Free");
+            park2Button.setText("Reserve Park 2");
+        }
     }
 }
