@@ -13,6 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/status"
+        android:textColor="@color/freeStatusColor"
         android:textSize="20sp" />
 
     <Button
@@ -29,6 +30,7 @@
         android:layout_below="@id/park1Button"
         android:layout_marginTop="1dp"
         android:text="@string/status"
+        android:textColor="@color/freeStatusColor"
         android:textSize="20sp" />
 
     <Button

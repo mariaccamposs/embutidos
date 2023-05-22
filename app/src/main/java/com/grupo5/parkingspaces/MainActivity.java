@@ -1,6 +1,7 @@
 package com.grupo5.parkingspaces;
 
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -105,17 +106,22 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateParkStatus() {
         if (isPark1Occupied) {
+            park1Status.setTextColor(Color.RED);
             park1Status.setText("Occupied by " + park1User);
             park1Button.setText("Release Park 1");
         } else {
+            park1Status.setTextColor(Color.GREEN);
             park1Status.setText("Free");
             park1Button.setText("Reserve Park 1");
+
         }
 
         if (isPark2Occupied) {
+            park2Status.setTextColor(Color.RED);
             park2Status.setText("Occupied by " + park2User);
             park2Button.setText("Release Park 2");
         } else {
+            park2Status.setTextColor(Color.GREEN);
             park2Status.setText("Free");
             park2Button.setText("Reserve Park 2");
         }
