@@ -5,15 +5,17 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <TextView
+    <EditText
+        android:id="@+id/edit_text_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Enter your name:"
-        android:textSize="18sp" />
+        android:hint="Name" />
 
     <EditText
-        android:id="@+id/nameEditText"
+        android:id="@+id/edit_text_pin"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:hint="PIN"
+        android:inputType="numberPassword" />
 
 </LinearLayout>
