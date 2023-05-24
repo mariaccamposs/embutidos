@@ -1,13 +1,16 @@
 package com.grupo5.parkingspaces;
 
 import android.app.AlertDialog;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.android.volley.ClientError;
 import com.android.volley.Request;
@@ -57,15 +60,15 @@ public class MainActivity extends AppCompatActivity {
         Button parkingButton1 = findViewById(R.id.button_parking1);
         Button parkingButton2 = findViewById(R.id.button_parking2);
 
-        Map <Integer, ParkingSpot> parkingSpacesMap = new HashMap<>();
+        Map<Integer, ParkingSpot> parkingSpacesMap = new HashMap<>();
 
-        ParkingSpot parkingSpot1 = new ParkingSpot(1,State.OCCUPIED,"0",parkingButton1);
-        ParkingSpot parkingSpot2 = new ParkingSpot(2,State.OCCUPIED,"0",parkingButton2);
+        ParkingSpot parkingSpot1 = new ParkingSpot(1, State.OCCUPIED, "0", parkingButton1);
+        ParkingSpot parkingSpot2 = new ParkingSpot(2, State.OCCUPIED, "0", parkingButton2);
 
-        parkingSpacesMap.put(parkingSpot1.getId(),parkingSpot1);
-        parkingSpacesMap.put(parkingSpot2.getId(),parkingSpot2);
+        parkingSpacesMap.put(parkingSpot1.getId(), parkingSpot1);
+        parkingSpacesMap.put(parkingSpot2.getId(), parkingSpot2);
 
-        handler = new Handler();
+        handler = new Handler(Looper.getMainLooper());
         updateRunnable = new Runnable() {
             @Override
             public void run() {
@@ -77,35 +80,42 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-//        getParkingInfo(parkingSpacesMap);
     }
 
     private void updateParkingSpotsUI(Map<Integer, ParkingSpot> parkingSpacesMap) {
         getParkingInfo(parkingSpacesMap);
 
-        parkingSpacesMap.forEach((k,v) ->
+        parkingSpacesMap.forEach((k, v) ->
         {
             State state = v.getState();
             Button button = v.getButton();
 
+            switch (state) {
+                case OCCUPIED:
+                    button.setEnabled(false);
+                    break;
+                case RESERVED:
+                    button.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.md_red_300)));
+                    button.setEnabled(true);
+                    break;
+                default:
+                    button.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.md_green_300)));
+                    button.setEnabled(true);
+            }
+
             button.setOnClickListener(view -> {
                 switch (state) {
                     case EMPTY:
-                        button.setEnabled(true);
                         showReserveDialog(v);
                         break;
                     case RESERVED:
-                        button.setEnabled(true);
                         showReleaseDialog(v);
                         break;
                     case OCCUPIED:
-                        button.setEnabled(false);
                         break;
                 }
             });
         });
-
-
     }
 
     private void showReserveDialog(ParkingSpot v) {
@@ -148,7 +158,8 @@ public class MainActivity extends AppCompatActivity {
                 response -> {
                     // Handle successful reservation response
                 },
-                error -> Log.e("ReservationError", error.toString())) {};
+                error -> Log.e("ReservationError", error.toString())) {
+        };
 
         requestQueue.add(request);
     }
@@ -159,16 +170,16 @@ public class MainActivity extends AppCompatActivity {
                 response -> {
                     try {
 
-                        for (int i = 0; i<2 ; i++) {
+                        for (int i = 0; i < 2; i++) {
 
-                            Log.d("RECEIVED",response.toString());
+                            Log.d("RECEIVED", response.toString());
                             JSONObject parking = response.getJSONObject(i);
 
-                            Log.d("RECEIVED",parking.toString());
+                            Log.d("RECEIVED", parking.toString());
                             int id = parking.getInt("id");
                             ParkingSpot cur = parkingSpacesMap.get(id);
 
-                            if (!parking.isNull("state")){
+                            if (!parking.isNull("state")) {
                                 String state = parking.getString("state");
                                 assert cur != null;
                                 cur.setState(State.convertFromString(state));
@@ -180,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
                                 cur.setLicencePlate(licensePlate);
                             }
 
-                            parkingSpacesMap.replace(id,cur);
+                            parkingSpacesMap.replace(id, cur);
 
                         }
 
