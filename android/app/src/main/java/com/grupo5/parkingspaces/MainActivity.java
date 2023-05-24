@@ -9,11 +9,13 @@ import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.android.volley.ClientError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.material.snackbar.Snackbar;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -146,14 +148,7 @@ public class MainActivity extends AppCompatActivity {
                 response -> {
                     // Handle successful reservation response
                 },
-                error -> Log.e("ReservationError", error.toString())) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-                headers.put("Content-Type", "application/json");
-                return headers;
-            }
-        };
+                error -> Log.e("ReservationError", error.toString())) {};
 
         requestQueue.add(request);
     }
@@ -212,14 +207,14 @@ public class MainActivity extends AppCompatActivity {
                 response -> {
                     // Handle successful spot release response
                 },
-                error -> Log.e("ReleaseError", error.toString())) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-                headers.put("Content-Type", "application/json");
-                return headers;
-            }
-        };
+                error -> {
+                    if (error instanceof ClientError && error.networkResponse != null && error.networkResponse.statusCode == 400) {
+                        // Error with status code 400 (Bad Request) is received
+                        showErrorPopUp("WRONG PIN");
+                    } else {
+                        Log.e("ReleaseError", error.toString());
+                    }
+                });
 
         requestQueue.add(request);
     }
@@ -247,5 +242,11 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog alertDialog = dialogBuilder.create();
         alertDialog.show();
     }
+
+    private void showErrorPopUp(String message) {
+        Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_SHORT);
+        snackbar.show();
+    }
+
 
 }
