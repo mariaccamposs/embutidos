@@ -172,10 +172,8 @@ public class MainActivity extends AppCompatActivity {
 
                         for (int i = 0; i < 2; i++) {
 
-                            Log.d("RECEIVED", response.toString());
                             JSONObject parking = response.getJSONObject(i);
 
-                            Log.d("RECEIVED", parking.toString());
                             int id = parking.getInt("id");
                             ParkingSpot cur = parkingSpacesMap.get(id);
 
