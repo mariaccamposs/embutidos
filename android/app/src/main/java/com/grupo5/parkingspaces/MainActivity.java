@@ -28,26 +28,32 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String BASE_URL = "http://10.199.43.41:5001";
+    private static final String BASE_URL = "http://192.168.31.112:5001";
     private static final String PARKING_INFO_URL = BASE_URL + "/parkingInfo";
     private static final String RESERVE_URL = BASE_URL + "/reserve";
     private static final String CANCEL_URL = BASE_URL + "/cancel";
+    private static final String FIRE_URL = BASE_URL + "/fireStatus";
 
     private static final int CALL_SERVER_INTERVAL = 500;
+    private static final int CALL_SERVER_FIRE_INTERVAL = 1500;
     private Handler handler;
-    private Runnable updateRunnable;
+    private Runnable runnableParkingStatus;
+    private Runnable runnableFireStatus;
+    private boolean firePopUpSent = false;
     private RequestQueue requestQueue;
 
     @Override
     public void onResume() {
         super.onResume();
-        handler.postDelayed(updateRunnable, CALL_SERVER_INTERVAL); // Start the periodic execution in onResume()
+        handler.postDelayed(runnableParkingStatus, CALL_SERVER_INTERVAL);
+        handler.postDelayed(runnableFireStatus, CALL_SERVER_FIRE_INTERVAL);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        handler.removeCallbacks(updateRunnable); // Stop the periodic execution in onPause()
+        handler.removeCallbacks(runnableParkingStatus);
+        handler.removeCallbacks(runnableFireStatus);
     }
 
     @Override
@@ -69,7 +75,8 @@ public class MainActivity extends AppCompatActivity {
         parkingSpacesMap.put(parkingSpot2.getId(), parkingSpot2);
 
         handler = new Handler(Looper.getMainLooper());
-        updateRunnable = new Runnable() {
+
+        runnableParkingStatus = new Runnable() {
             @Override
             public void run() {
                 // Call the method to update parking spots UI
@@ -80,6 +87,42 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
+        runnableFireStatus = new Runnable() {
+            @Override
+            public void run() {
+                checkFireState();
+
+                handler.postDelayed(this, CALL_SERVER_FIRE_INTERVAL);
+            }
+        };
+
+    }
+
+    private void checkFireState() {
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, FIRE_URL, null,
+                response -> {
+                    try {
+                        // Parse the JSON response and get the "result" field
+                        String result = response.getString("fire");
+
+                        if (result.equals("true")) {
+                            if (!firePopUpSent) {
+                                showPopupMessage("FIRE");
+                                firePopUpSent = true;
+                            }
+                        } else {
+                            firePopUpSent = false;
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                },
+                error -> {
+                });
+
+        // Add the request to the RequestQueue
+        requestQueue.add(jsonObjectRequest);
     }
 
     private void updateParkingSpotsUI(Map<Integer, ParkingSpot> parkingSpacesMap) {
@@ -263,6 +306,15 @@ public class MainActivity extends AppCompatActivity {
 
         AlertDialog alertDialog = dialogBuilder.create();
         alertDialog.show();
+    }
+
+    private void showPopupMessage(String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message)
+                .setPositiveButton("OK", (dialog, id) -> firePopUpSent = false);
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     private void showErrorPopUp(String message) {

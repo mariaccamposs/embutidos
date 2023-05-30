@@ -11,7 +11,9 @@ port = 5001
 
 numberOfSpaces = 2
 parkingSpaces = []
-arduino = serial.Serial("/dev/ttyACM0", 9600, timeout=1)
+fire = False
+
+arduino = serial.Serial("COM4", 9600, timeout=1)
 
 class thread(threading.Thread):
     def __init__(self, thread_name, thread_ID):
@@ -49,6 +51,12 @@ class thread(threading.Thread):
                                 print("Parking "+ str(parque) +" Empty\n");
                             else:
                                 print("Error setting parking " + str(parque) + "to Empty")
+                        elif "yes" in answer:
+                            fire = True
+                            print("Fire detected")
+                        elif "no" in answer:
+                            fire = False
+                            print("Fire extinguished")
                         arduino.flushInput() #remove data after reading
             except KeyboardInterrupt:
                 print("KeyboardInterrupt has been caught.")
@@ -72,6 +80,14 @@ class Server(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(serializeParkingSpaces(space=spaceId).encode('utf-8'))
 
+    def _send_fire_info(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        d = dict()
+        d['fire'] = fire
+        self.wfile.write(json.dumps(d).encode('utf-8'))
+
     def do_GET(self):
         url = urlparse(self.path)
         if url.path == "/parkingInfo":
@@ -80,6 +96,9 @@ class Server(BaseHTTPRequestHandler):
         elif url.path== "/parkingSpaceInfo":
             spaceId = int(parse_qs(url.query)['id'][0])
             self._send_space_info(spaceId)
+            return
+        elif url.path == "/fireStatus":
+            self._send_fire_info()
             return
         else:
             self.send_error(404)
@@ -108,11 +127,11 @@ class Server(BaseHTTPRequestHandler):
         content_length = int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length)
         data = json.loads(post_data)
-
         id_space = int(data['id'])
         secret_code = data['secret_code']
-
         if (parkingSpaces[id_space].cancelReservation(secret_code)):
+            to_send = id_space + 2
+            arduino.write(str(to_send).encode())
             print("Cancelled %d with success\n" % id_space)
             self._set_response()
         else:

@@ -22,6 +22,7 @@ int distance;
 int reserved_1 = 0;
 String estado2 = "Lugar 2 Livre";
 int reserved_2 = 0;
+int fire = 0;
 
 void setup() {
   pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
@@ -120,13 +121,22 @@ void loop() {
     }
     //Serial.print(msg);
   }
-  if(dht.readTemperature()> 27){
+  if(dht.readTemperature()> 30){
       digitalWrite(Temp_led, HIGH);
+      if(fire==0){
+        Serial.println("yes");
+        fire=1;
+      }
+      
   }else{
       digitalWrite(Temp_led, LOW);
+      if(fire==1){
+        Serial.println("no");
+        fire=0;
+      }
   }
   
- // Serial.println("Temperature = " + String(dht.readTemperature())+" °C");
+  //Serial.println("Temperature = " + String(dht.readTemperature())+" °C");
   //Serial.println("Humidite = " + String(dht.readHumidity())+" %");
   delay(600);
 }
