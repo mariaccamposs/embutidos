@@ -1,10 +1,11 @@
 import json
 from json import JSONEncoder
 
+#Falta lógica de transições
 class ParkingSpace:
     def __init__(self,id):
         self.id = id
-        self.state = "Empty" #Pode ser Empty, Reserved, Occupied
+        self.state = "Empty" #Pode ser Empty, Reserved, Occuped
         self.licensePlate = None
         self.secretCode = None
 
@@ -14,8 +15,8 @@ class ParkingSpace:
     def isReserved(self):
         return self.state == "Reserved"
 
-    def isOccupied(self):
-        return self.state == "Occupied"
+    def isOccuped(self):
+        return self.state == "Occuped"
 
     def stateToEmpty(self):
         self.state = "Empty"
@@ -23,8 +24,8 @@ class ParkingSpace:
     def stateToReserved(self):
         self.state = "Reserved"
 
-    def stateToOccupied(self):
-        self.state = "Occupied"
+    def stateToOccuped(self):
+        self.state = "Occuped"
 
     def reserveSpace(self,license_plate,secret_code):
         if (self.isEmpty()):
@@ -48,6 +49,7 @@ class ParkingSpace:
                 self.stateToEmpty()
                 self.licensePlate = None
                 self.secretCode = None
+                print("Cancelled with success")
                 return True
 
 class ParkingSpaceEncoder(JSONEncoder):

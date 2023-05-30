@@ -35,5 +35,9 @@ public class ParkingSpot {
         return button;
     }
 
+    public String getLicencePlate() {
+        return licencePlate;
+    }
+
 
 }

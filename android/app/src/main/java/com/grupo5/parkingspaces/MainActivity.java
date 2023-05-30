@@ -28,12 +28,12 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String BASE_URL = "http://10.0.2.2:5001";
+    private static final String BASE_URL = "http://10.199.43.41:5001";
     private static final String PARKING_INFO_URL = BASE_URL + "/parkingInfo";
     private static final String RESERVE_URL = BASE_URL + "/reserve";
     private static final String CANCEL_URL = BASE_URL + "/cancel";
 
-    private static final int CALL_SERVER_INTERVAL = 1000;
+    private static final int CALL_SERVER_INTERVAL = 500;
     private Handler handler;
     private Runnable updateRunnable;
     private RequestQueue requestQueue;
@@ -93,12 +93,25 @@ public class MainActivity extends AppCompatActivity {
             switch (state) {
                 case OCCUPIED:
                     button.setEnabled(false);
+                    button.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.md_red_300)));
                     break;
                 case RESERVED:
-                    button.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.md_red_300)));
+                    button.setText(v.getLicencePlate());
+                    button.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.md_yellow_300)));
                     button.setEnabled(true);
                     break;
                 default:
+
+                    switch (v.getId()) {
+                        case 1:
+                            button.setText("Parking Space 1");
+                            break;
+                        case 2:
+                            button.setText("Parking Space 2");
+                            break;
+                        default:
+                            break;
+                    }
                     button.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.md_green_300)));
                     button.setEnabled(true);
             }

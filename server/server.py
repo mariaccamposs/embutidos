@@ -2,24 +2,21 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from ParkingSpace import ParkingSpace, ParkingSpaceEncoder
 import json
 from urllib.parse import urlparse, parse_qs
-import serial,time
 import threading
-
+import serial,time
 
 host = "0.0.0.0" # Permite conexões de outros devices na mesma rede ao contrário de localhost
 port = 5001
 
 numberOfSpaces = 2
 parkingSpaces = []
-fire = False
-arduino = serial.Serial("/dev/ttyACM0", 9600, timeout=1)
+arduino = serial.Serial("COM4", 9600, timeout=1);
 
 class thread(threading.Thread):
     def __init__(self, thread_name, thread_ID):
         threading.Thread.__init__(self)
         self.thread_name = thread_name
         self.thread_ID = thread_ID
-
     def run(self):
         print(str(self.thread_name) +" "+ str(self.thread_ID));
         print('Running. Press CTRL-C to exit.')
@@ -28,33 +25,37 @@ class thread(threading.Thread):
             print("{} connected!".format(arduino.port))
             try:
                 while True:
+                    #pcmd=input("Enter command : ")
+                # arduino.write(cmd.encode())
                     time.sleep(0.1) #wait for arduino to answer
                     while arduino.inWaiting()==0: pass
-                    if  arduino.inWaiting()>0:
+                    if  arduino.inWaiting()>0: 
                         answer=arduino.readline()
                         answer=answer.decode('utf-8');
+                        #print(answer)
                         parque = 1
                         if "1" in answer:
                             parque = 1
                         else:
                             parque = 2
                         if "Ocupado" in answer:
-                            parkingSpaces[parque].stateToOccupied()
-                            if parkingSpaces[parque].isOccupied():
-                                print("Parking "+ str(parque) +" Occupied\n");
+                            parkingSpaces[parque].stateToOccuped()
+                            if parkingSpaces[parque].isOccuped():
+                                print("Parking "+ str(parque) +" Ocupied\n");
                             else:
-                                print("Error setting parking" +str(parque)+ "to Occupied")
+                                print("Error setting parking 1 to Ocupied")
                         elif "Livre" in answer:
                             parkingSpaces[parque].stateToEmpty()
                             if parkingSpaces[parque].isEmpty():
                                 print("Parking "+ str(parque) +" Empty\n");
                             else:
-                                print("Error setting parking " + str(parque) + "to Empty")
+                                print("Error setting parking 1 to Empty")
                         arduino.flushInput() #remove data after reading
             except KeyboardInterrupt:
                 print("KeyboardInterrupt has been caught.")
 
 class Server(BaseHTTPRequestHandler):
+
 
     def _set_response(self):
         self.send_response(200)
@@ -73,14 +74,6 @@ class Server(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(serializeParkingSpaces(space=spaceId).encode('utf-8'))
 
-    def _send_fire_info(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        d = dict()
-        d['fire'] = fire
-        self.wfile.write(json.dumps(d).encode('utf-8'))
-
     def do_GET(self):
         url = urlparse(self.path)
         if url.path == "/parkingInfo":
@@ -89,10 +82,7 @@ class Server(BaseHTTPRequestHandler):
         elif url.path== "/parkingSpaceInfo":
             spaceId = int(parse_qs(url.query)['id'][0])
             self._send_space_info(spaceId)
-            return
-        elif url.path == "/fireStatus":
-            self._send_fire_info()
-            return
+            return 
         else:
             self.send_error(404)
         print("GET request \nPath: %s\nHeaders: %s\n" % (str(self.path),str(self.headers)))
@@ -112,20 +102,28 @@ class Server(BaseHTTPRequestHandler):
 
         if (parkingSpaces[id_space].reserveSpace(license_plate,secret_code)):
             print("Reserved %d with success\n" % id_space)
+            #send_command(str(id_space)+"reserved")
             arduino.write(str(id_space).encode())
+            #while arduino.inWaiting()==0: pass
+            #answer=arduino.readline()
+            #answer=answer.decode('utf-8');
+            #print(answer)
             self._set_response()
         else:
             self.send_error(400,"Place not available for reservation")
-
+    def send_command(command):
+        arduino.write(command.encode())  # Send the command to the Arduino
+        response = arduino.readline().decode().strip()  # Read the response from Arduino
+        print("Received response:", response)
     def _cancel_reservation(self):
-        content_length = int(self.headers['Content-Length'])
+        content_length= int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length)
         data = json.loads(post_data)
+
         id_space = int(data['id'])
         secret_code = data['secret_code']
+
         if (parkingSpaces[id_space].cancelReservation(secret_code)):
-            to_send = id_space + 2
-            arduino.write(str(to_send).encode())
             print("Cancelled %d with success\n" % id_space)
             self._set_response()
         else:
@@ -135,7 +133,7 @@ class Server(BaseHTTPRequestHandler):
                 self.send_error(400,"Wrong code")
 
     # Usado para reservar um lugar
-    # Json com id do lugar mais matricula mais booleano se quer receber notificações
+    # Json com id do lugar mais matricula mais booleano se quer receber notificações 
     def do_POST(self):
         if self.path == "/reserve":
             self._reserve_space()
@@ -146,6 +144,10 @@ class Server(BaseHTTPRequestHandler):
         else:
             self.send_error(404)
             return
+        #print("POST request \nPath: %s\nHeaders: %s\n" % (str(self.path),str(self.headers)))
+        #self._set_response()
+        #self.wfile.write("GET request for {}".format(self.path).encode('utf-8'))
+
 
 
 def initializeParkingSpaces(n):
@@ -156,6 +158,7 @@ def initializeParkingSpaces(n):
 
 def serializeParkingSpaces(space=None):
     if (space != None):
+        #if (space > 0 and space <= numberOfSpaces)
         serializedMessage = json.dumps(parkingSpaces[space],cls=ParkingSpaceEncoder)
     else:
         serializedMessage = json.dumps(parkingSpaces[1:],cls=ParkingSpaceEncoder) # 0 é Null
