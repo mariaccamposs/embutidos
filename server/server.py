@@ -11,6 +11,7 @@ port = 5001
 
 numberOfSpaces = 2
 parkingSpaces = []
+fire = False
 arduino = serial.Serial("/dev/ttyACM0", 9600, timeout=1)
 
 class thread(threading.Thread):
@@ -72,6 +73,14 @@ class Server(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(serializeParkingSpaces(space=spaceId).encode('utf-8'))
 
+    def _send_fire_info(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        d = dict()
+        d['fire'] = fire
+        self.wfile.write(json.dumps(d).encode('utf-8'))
+
     def do_GET(self):
         url = urlparse(self.path)
         if url.path == "/parkingInfo":
@@ -80,6 +89,9 @@ class Server(BaseHTTPRequestHandler):
         elif url.path== "/parkingSpaceInfo":
             spaceId = int(parse_qs(url.query)['id'][0])
             self._send_space_info(spaceId)
+            return
+        elif url.path == "/fireStatus":
+            self._send_fire_info()
             return
         else:
             self.send_error(404)
