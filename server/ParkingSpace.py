@@ -1,7 +1,6 @@
 import json
 from json import JSONEncoder
 
-#Falta lógica de transições
 class ParkingSpace:
     def __init__(self,id):
         self.id = id
@@ -49,7 +48,6 @@ class ParkingSpace:
                 self.stateToEmpty()
                 self.licensePlate = None
                 self.secretCode = None
-                print("Cancelled with success")
                 return True
 
 class ParkingSpaceEncoder(JSONEncoder):
