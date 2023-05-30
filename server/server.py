@@ -96,7 +96,6 @@ class Server(BaseHTTPRequestHandler):
         id_space = int(data['id'])
         license_plate = data['license_plate']
         secret_code = data['secret_code']
-        #notification adicionar depois
 
         if (parkingSpaces[id_space].reserveSpace(license_plate,secret_code)):
             print("Reserved %d with success\n" % id_space)
