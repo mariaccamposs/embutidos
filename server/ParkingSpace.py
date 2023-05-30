@@ -5,7 +5,7 @@ from json import JSONEncoder
 class ParkingSpace:
     def __init__(self,id):
         self.id = id
-        self.state = "Empty" #Pode ser Empty, Reserved, Occuped
+        self.state = "Empty" #Pode ser Empty, Reserved, Occupied
         self.licensePlate = None
         self.secretCode = None
 
@@ -15,8 +15,8 @@ class ParkingSpace:
     def isReserved(self):
         return self.state == "Reserved"
 
-    def isOccuped(self):
-        return self.state == "Occuped"
+    def isOccupied(self):
+        return self.state == "Occupied"
 
     def stateToEmpty(self):
         self.state = "Empty"
@@ -24,8 +24,8 @@ class ParkingSpace:
     def stateToReserved(self):
         self.state = "Reserved"
 
-    def stateToOccuped(self):
-        self.state = "Occuped"
+    def stateToOccupied(self):
+        self.state = "Occupied"
 
     def reserveSpace(self,license_plate,secret_code):
         if (self.isEmpty()):
