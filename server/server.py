@@ -109,11 +109,11 @@ class Server(BaseHTTPRequestHandler):
         content_length = int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length)
         data = json.loads(post_data)
-
         id_space = int(data['id'])
         secret_code = data['secret_code']
-
         if (parkingSpaces[id_space].cancelReservation(secret_code)):
+            to_send = id_space + 2
+            arduino.write(str(to_send).encode())
             print("Cancelled %d with success\n" % id_space)
             self._set_response()
         else:
