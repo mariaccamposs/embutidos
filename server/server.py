@@ -87,6 +87,8 @@ class Server(BaseHTTPRequestHandler):
         d = dict()
         d['fire'] = fire
         self.wfile.write(json.dumps(d).encode('utf-8'))
+        if fire == True:
+            fire = False
 
     def do_GET(self):
         url = urlparse(self.path)
