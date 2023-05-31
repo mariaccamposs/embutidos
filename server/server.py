@@ -11,7 +11,6 @@ port = 5001
 
 numberOfSpaces = 2
 parkingSpaces = []
-fire = False
 
 arduino = serial.Serial("/dev/ttyACM0", 9600, timeout=1)
 
@@ -52,10 +51,10 @@ class thread(threading.Thread):
                             else:
                                 print("Error setting parking " + str(parque) + "to Empty")
                         elif "yes" in answer:
-                            fire = True
+                            parkingSpaces[1].fireTrue()
                             print("Fire detected")
                         elif "no" in answer:
-                            fire = False
+                            parkingSpaces[1].fireFalse()
                             print("Fire extinguished")
                         arduino.flushInput() #remove data after reading
             except KeyboardInterrupt:
@@ -85,10 +84,8 @@ class Server(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'application/json')
         self.end_headers()
         d = dict()
-        d['fire'] = fire
+        d['fire'] = parkingSpaces[1].fireState()
         self.wfile.write(json.dumps(d).encode('utf-8'))
-        if fire == True:
-            fire = False
 
     def do_GET(self):
         url = urlparse(self.path)
@@ -170,12 +167,13 @@ def serializeParkingSpaces(space=None):
     return serializedMessage
 
 if __name__ == "__main__":
-    thread1 = thread("Thread-Arduino", 1)
-    thread1.start()
     webServer = HTTPServer( (host,port), Server)
     print("Server started at http://%s:%s" % (host,port))
 
     initializeParkingSpaces(numberOfSpaces)
+
+    thread1 = thread("Thread-Arduino", 1)
+    thread1.start()
 
     try:
         webServer.serve_forever()

@@ -8,6 +8,7 @@ class ParkingSpace:
         self.state = "Empty" #Pode ser Empty, Reserved, Occupied
         self.licensePlate = None
         self.secretCode = None
+        self.fire = False
 
     def isEmpty(self):
         return self.state == "Empty"
@@ -17,6 +18,17 @@ class ParkingSpace:
 
     def isOccupied(self):
         return self.state == "Occupied"
+
+    def fireTrue(self):
+        self.fire = True
+
+    def fireFalse(self):
+        self.fire = False
+
+    def fireState(self):
+        if (self.fire):
+            return True
+        return False
 
     def stateToEmpty(self):
         self.state = "Empty"
