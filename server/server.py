@@ -13,7 +13,7 @@ numberOfSpaces = 2
 parkingSpaces = []
 fire = False
 
-arduino = serial.Serial("COM4", 9600, timeout=1)
+arduino = serial.Serial("/dev/ttyACM0", 9600, timeout=1)
 
 class thread(threading.Thread):
     def __init__(self, thread_name, thread_ID):
